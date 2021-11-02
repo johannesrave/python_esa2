@@ -33,9 +33,9 @@ class SinePattern:
     def get_sine_for_ms(self, item_num, amount, factor=1):
         normalized_moment = (pygame.time.get_ticks() % self.duration) / self.duration
         print(normalized_moment)
-        offset = normalized_moment + ((item_num / amount) * self.duration) * factor
+        t = (normalized_moment + ((item_num / amount) * self.duration) * factor) * 3
         scaled_to_duration = (2 * math.pi / self.duration)
-        t = offset
+        # t = offset
         n = math.sin(t) * self.amplitude
         return int(n)
 
