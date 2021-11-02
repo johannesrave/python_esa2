@@ -27,12 +27,12 @@ class SinePattern:
 
     def calculate_position(self, item_num, amount):
         x = window_width / (amount + 1) * (item_num + 1)
-        y = self.get_sine_for_ms(item_num, amount)
+        y = self.baseline + self.get_sine_for_ms(item_num, amount, 3)
         return (x, y)
 
     def get_sine_for_ms(self, item_num, amount, factor=1):
-        normalized_time = (pygame.time.get_ticks() % self.duration) / self.duration
-        offset = normalized_time + ((item_num / amount) * self.duration) * factor
+        normalized_moment = (pygame.time.get_ticks() % self.duration) / self.duration
+        offset = normalized_moment + ((item_num / amount) * self.duration) * factor
         scaled_to_duration = (2 * math.pi / self.duration)
         t = offset * scaled_to_duration
         n = math.sin(t) * self.amplitude
@@ -74,13 +74,13 @@ class Enemy(Sprite):
 
     # enemy.rect.center = self.pattern.calculate_position(num, amount)
 
-    @staticmethod
-    def get_sine_for_ms(amplitude, loop_duration, offset):
-        milliseconds_in_loop = (pygame.time.get_ticks() + offset % loop_duration)
-        scaled_to_duration = (2 * math.pi / loop_duration)
-        t = milliseconds_in_loop * scaled_to_duration
-        n = math.sin(t) * amplitude
-        return int(n)
+    # @staticmethod
+    # def get_sine_for_ms(amplitude, loop_duration, offset):
+    #     milliseconds_in_loop = (pygame.time.get_ticks() + offset % loop_duration)
+    #     scaled_to_duration = (2 * math.pi / loop_duration)
+    #     t = milliseconds_in_loop * scaled_to_duration
+    #     n = math.sin(t) * amplitude
+    #     return int(n)
 
 
 def point_dist(point_1, point_2):
@@ -92,6 +92,7 @@ def point_dist(point_1, point_2):
 crashed = False
 
 enemies = Enemies()
+enemies.generate(50, 8)
 
 while not crashed:
     for event in pygame.event.get():
