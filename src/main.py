@@ -38,12 +38,17 @@ class Enemy(Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args: Any, **kwargs: Any) -> None:
-        dist_to_mouse = point_dist(self.rect.center, pygame.mouse.get_pos())
-        pattern_pos_y = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
+        # dist_to_mouse = point_dist([self.rect.center[0], 0], [pygame.mouse.get_pos()[0], 0])
+        y_pos_movement = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
 
-        mouse_influence = (window_width - dist_to_mouse) * 0.01
-        mouse_influence = math.copysign(mouse_influence, pattern_pos_y)
-        self.rect.y = pattern_pos_y * mouse_influence + self.baseline
+        x_distance_mouse_center = abs(self.rect.centerx - pygame.mouse.get_pos()[0])
+        x_normalized_modulation_distance = math.copysign((300 - x_distance_mouse_center) / 300, y_pos_movement)
+        y_distance_mouse_baseline = self.baseline - pygame.mouse.get_pos()[1]
+        y_normalized_modulation_influence = y_distance_mouse_baseline / (self.movement_height / 2)
+
+        mouse_influence = x_normalized_modulation_distance * y_normalized_modulation_influence * 32
+        # mouse_influence = math.copysign(mouse_influence, y_pos)
+        self.rect.y = self.baseline + y_pos_movement + mouse_influence
 
         # self.rect.center = (self.rect.center[0], self.rect.center[1] + (dist_to_mouse/30)**2)
 
