@@ -19,37 +19,60 @@ window.blit(background, (0, 0))
 pygame.display.flip()
 
 
+class SinePattern:
+    def __init__(self, amplitude, duration, baseline=(window_height/2)):
+        self.amplitude = amplitude
+        self.duration = duration
+        self.baseline = baseline
+
+    def calculate_position(self, item_num, amount):
+        x = window_width / (amount + 1) * (item_num + 1)
+        y = self.get_sine_for_ms(item_num, amount)
+        return (x, y)
+
+    def get_sine_for_ms(self, item_num, amount, factor=1):
+        normalized_time = (pygame.time.get_ticks() % self.duration) / self.duration
+        offset = normalized_time + ((item_num / amount) * self.duration) * factor
+        scaled_to_duration = (2 * math.pi / self.duration)
+        t = offset * scaled_to_duration
+        n = math.sin(t) * self.amplitude
+        return int(n)
+
+
 class Enemies(Group):
     def __init__(self, *sprites: Union[Sprite, Sequence[Sprite]]) -> None:
         super().__init__(*sprites)
 
+    def generate(self, amount, width=32, height=32, pattern=SinePattern(200, 1000)):
+        for num in range(amount+1):
+            enemy = Enemy(self, pattern=pattern, height=height, width=width, item_num=num, amount=amount)
+            self.add(enemy)
+
 
 class Enemy(Sprite):
-    def __init__(self, *groups: AbstractGroup, color=pygame.Color(180, 170, 140), width, height, offset):
+    def __init__(self, *groups: Enemies, color=pygame.Color(180, 170, 140), width, height, pattern, item_num, amount):
         super().__init__(*groups)
+        self.amount = amount
+        self.item_num = item_num
+        self.pattern = pattern
         self.color = color
-        self.movement_height = 200
-        self.baseline = window_height/2
-        self.loop_duration = 1000
-        self.offset = offset
-        self.y_scale = 1.0
         self.image = pygame.Surface([width, height])
         self.image.fill(self.color)
         self.rect = self.image.get_rect()
 
     def update(self, *args: Any, **kwargs: Any) -> None:
-        y_pos_movement = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
+        self.rect.center = self.pattern.calculate_position(self.item_num, self.amount)
 
-        x_pos_mouse = pygame.mouse.get_pos()[0]
-        x_distance_mouse_center = abs(self.rect.center[0] - x_pos_mouse)
-        x_normalized_modulation_distance = (window_width - x_distance_mouse_center) / window_width
-        # y_distance_mouse_baseline = self.baseline - pygame.mouse.get_pos()[1]
-        # y_normalized_modulation_influence = y_distance_mouse_baseline / (self.movement_height / 2)
 
-        # mouse_influence = x_normalized_modulation_distance * y_normalized_modulation_influence * 32
-        # mouse_influence = math.copysign(mouse_influence, y_pos)
-        y_new = self.baseline + (y_pos_movement * x_normalized_modulation_distance *1.5)
-        self.rect.y = y_new
+        # y_pos_movement = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
+
+        # x_pos_mouse = pygame.mouse.get_pos()[0]
+        # x_distance_mouse_center = abs(self.rect.center[0] - x_pos_mouse)
+        # x_normalized_modulation_distance = (window_width - x_distance_mouse_center) / window_width
+        # y_new = self.baseline + (y_pos_movement * x_normalized_modulation_distance *1.5)
+        # self.rect.y = y_new
+
+    # enemy.rect.center = self.pattern.calculate_position(num, amount)
 
     @staticmethod
     def get_sine_for_ms(amplitude, loop_duration, offset):
@@ -69,12 +92,6 @@ def point_dist(point_1, point_2):
 crashed = False
 
 enemies = Enemies()
-enemies.number = 25
-for num in range(enemies.number):
-    enemy = Enemy(enemies, height=32, width=16, offset=num * 48)
-    enemy.rect.x = num * 32 + 16
-    enemy.rect.y = 300
-    window.blit(enemy.image, enemy.rect)
 
 while not crashed:
     for event in pygame.event.get():
