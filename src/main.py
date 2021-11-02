@@ -5,7 +5,7 @@ import math
 from pygame.sprite import Sprite, AbstractGroup, Group
 
 pygame.init()
-window_width, window_height = 800, 600
+window_width, window_height = 1200, 600
 window = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption('AsteroidR')
 frames_per_second = 60
@@ -28,7 +28,7 @@ class Enemy(Sprite):
     def __init__(self, *groups: AbstractGroup, color=pygame.Color(180, 170, 140), width, height, offset):
         super().__init__(*groups)
         self.color = color
-        self.movement_height = 128
+        self.movement_height = 200
         self.baseline = window_height/2
         self.loop_duration = 1000
         self.offset = offset
@@ -38,34 +38,18 @@ class Enemy(Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args: Any, **kwargs: Any) -> None:
-        # dist_to_mouse = point_dist([self.rect.center[0], 0], [pygame.mouse.get_pos()[0], 0])
         y_pos_movement = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
 
-        x_distance_mouse_center = abs(self.rect.centerx - pygame.mouse.get_pos()[0])
-        x_normalized_modulation_distance = math.copysign((300 - x_distance_mouse_center) / 300, y_pos_movement)
-        y_distance_mouse_baseline = self.baseline - pygame.mouse.get_pos()[1]
-        y_normalized_modulation_influence = y_distance_mouse_baseline / (self.movement_height / 2)
+        x_pos_mouse = pygame.mouse.get_pos()[0]
+        x_distance_mouse_center = abs(self.rect.center[0] - x_pos_mouse)
+        x_normalized_modulation_distance = (window_width - x_distance_mouse_center) / window_width
+        # y_distance_mouse_baseline = self.baseline - pygame.mouse.get_pos()[1]
+        # y_normalized_modulation_influence = y_distance_mouse_baseline / (self.movement_height / 2)
 
-        mouse_influence = x_normalized_modulation_distance * y_normalized_modulation_influence * 32
+        # mouse_influence = x_normalized_modulation_distance * y_normalized_modulation_influence * 32
         # mouse_influence = math.copysign(mouse_influence, y_pos)
-        self.rect.y = self.baseline + y_pos_movement + mouse_influence
-
-        # self.rect.center = (self.rect.center[0], self.rect.center[1] + (dist_to_mouse/30)**2)
-
-        # if dist_to_mouse < 200:
-        #     print('mouse is close to rect!', pygame.mouse.get_pos())
-        #     self.y_scale = 4.0
-        #
-        # else:
-        #     self.y_scale = 1.0
-        #     self.rect.center = (self.rect.center[0], self.rect.center[1] - 30)
-
-        # center = self.rect.center
-        # self.rect.height *= self.y_scale
-        # self.rect.center = center
-        #
-        # self.image = pygame.Surface((self.rect.width, self.rect.height))
-        # self.image.fill(self.color)
+        y_new = self.baseline + (y_pos_movement * x_normalized_modulation_distance *1.5)
+        self.rect.y = y_new
 
     @staticmethod
     def get_sine_for_ms(amplitude, loop_duration, offset):
@@ -85,7 +69,7 @@ def point_dist(point_1, point_2):
 crashed = False
 
 enemies = Enemies()
-enemies.number = 24
+enemies.number = 25
 for num in range(enemies.number):
     enemy = Enemy(enemies, height=32, width=16, offset=num * 48)
     enemy.rect.x = num * 32 + 16
