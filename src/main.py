@@ -5,7 +5,8 @@ import math
 from pygame.sprite import Sprite, AbstractGroup, Group
 
 pygame.init()
-window = pygame.display.set_mode((800, 600))
+window_width, window_height = 800, 600
+window = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption('AsteroidR')
 frames_per_second = 60
 clock = pygame.time.Clock()
@@ -28,7 +29,7 @@ class Enemy(Sprite):
         super().__init__(*groups)
         self.color = color
         self.movement_height = 128
-        self.baseline = 300
+        self.baseline = window_height/2
         self.loop_duration = 1000
         self.offset = offset
         self.y_scale = 1.0
@@ -37,11 +38,14 @@ class Enemy(Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args: Any, **kwargs: Any) -> None:
-        new_y = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset) + self.baseline
-        self.rect.y = new_y
-
         dist_to_mouse = point_dist(self.rect.center, pygame.mouse.get_pos())
-        self.rect.center = (self.rect.center[0], self.rect.center[1] + (dist_to_mouse/30)**2)
+        pattern_pos_y = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
+
+        mouse_influence = (window_width - dist_to_mouse) * 0.01
+        mouse_influence = math.copysign(mouse_influence, pattern_pos_y)
+        self.rect.y = pattern_pos_y * mouse_influence + self.baseline
+
+        # self.rect.center = (self.rect.center[0], self.rect.center[1] + (dist_to_mouse/30)**2)
 
         # if dist_to_mouse < 200:
         #     print('mouse is close to rect!', pygame.mouse.get_pos())
