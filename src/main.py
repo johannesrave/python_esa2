@@ -30,21 +30,27 @@ class SinePattern:
         y = self.baseline + self.get_sine_for_ms(item_num, amount, 3)
         return (x, y)
 
-    def get_sine_for_ms(self, item_num, amount, factor=1):
-        normalized_moment = (pygame.time.get_ticks() % self.duration) / self.duration
-        print(normalized_moment)
-        t = (normalized_moment + ((item_num / amount) * self.duration) * factor) * 3
-        scaled_to_duration = (2 * math.pi / self.duration)
-        # t = offset
+    def get_sine_for_ms(self, item_num, amount, factor=4):
+        normalized_offset = ((item_num / amount) * self.duration)
+        normalized_moment = ((pygame.time.get_ticks() + normalized_offset) % self.duration) / self.duration
+        t = ((normalized_moment) * (2 * 3.14159)) * factor
         n = math.sin(t) * self.amplitude
-        return int(n)
+        return n
 
+
+    # @staticmethod
+    # def get_sine_for_ms(amplitude, loop_duration, offset):
+    #     milliseconds_in_loop = (pygame.time.get_ticks() + offset % loop_duration)
+    #     scaled_to_duration = (2 * math.pi / loop_duration)
+    #     t = milliseconds_in_loop * scaled_to_duration
+    #     n = math.sin(t) * amplitude
+    #     return int(n)
 
 class Enemies(Group):
     def __init__(self, *sprites: Union[Sprite, Sequence[Sprite]]) -> None:
         super().__init__(*sprites)
 
-    def generate(self, amount, width=32, height=32, pattern=SinePattern(200, 1000)):
+    def generate(self, amount, width=32, height=32, pattern=SinePattern(200, 4000)):
         for num in range(amount+1):
             enemy = Enemy(self, pattern=pattern, height=height, width=width, item_num=num, amount=amount)
             self.add(enemy)
@@ -74,14 +80,6 @@ class Enemy(Sprite):
         # self.rect.y = y_new
 
     # enemy.rect.center = self.pattern.calculate_position(num, amount)
-
-    # @staticmethod
-    # def get_sine_for_ms(amplitude, loop_duration, offset):
-    #     milliseconds_in_loop = (pygame.time.get_ticks() + offset % loop_duration)
-    #     scaled_to_duration = (2 * math.pi / loop_duration)
-    #     t = milliseconds_in_loop * scaled_to_duration
-    #     n = math.sin(t) * amplitude
-    #     return int(n)
 
 
 def point_dist(point_1, point_2):
