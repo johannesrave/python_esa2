@@ -1,13 +1,11 @@
-from typing import Union, Sequence, Any
-
 import pygame
-import math
-from pygame.sprite import Sprite, AbstractGroup, Group
+from src.game_objects import Markers, Marker
+from src.geometry import SinePattern, MouseBased
 
 pygame.init()
-window_width, window_height = 1200, 600
-window = pygame.display.set_mode((window_width, window_height))
-pygame.display.set_caption('AsteroidR')
+window_dimensions = (1200, 600)
+window = pygame.display.set_mode(window_dimensions)
+pygame.display.set_caption('PatternModul8')
 frames_per_second = 60
 clock = pygame.time.Clock()
 
@@ -18,90 +16,23 @@ background.fill((79, 78, 75))
 window.blit(background, (0, 0))
 pygame.display.flip()
 
+running = True
 
-class SinePattern:
-    def __init__(self, amplitude, duration, baseline=(window_height/2)):
-        self.amplitude = amplitude
-        self.duration = duration
-        self.baseline = baseline
+markers = Markers(
+    pattern=SinePattern(200, 4000, time=pygame.time, dimensions=window_dimensions),
+    modulation=MouseBased(30, 'x'))
+for i in range(50):
+    Marker(markers)
 
-    def calculate_position(self, item_num, amount):
-        x = window_width / (amount + 1) * (item_num + 1)
-        y = self.baseline + self.get_sine_for_ms(item_num, amount, 3)
-        return (x, y)
-
-    def get_sine_for_ms(self, item_num, amount, factor=4):
-        normalized_offset = ((item_num / amount) * self.duration)
-        normalized_moment = ((pygame.time.get_ticks() + normalized_offset) % self.duration) / self.duration
-        t = ((normalized_moment) * (2 * 3.14159)) * factor
-        n = math.sin(t) * self.amplitude
-        return n
-
-
-    # @staticmethod
-    # def get_sine_for_ms(amplitude, loop_duration, offset):
-    #     milliseconds_in_loop = (pygame.time.get_ticks() + offset % loop_duration)
-    #     scaled_to_duration = (2 * math.pi / loop_duration)
-    #     t = milliseconds_in_loop * scaled_to_duration
-    #     n = math.sin(t) * amplitude
-    #     return int(n)
-
-class Enemies(Group):
-    def __init__(self, *sprites: Union[Sprite, Sequence[Sprite]]) -> None:
-        super().__init__(*sprites)
-
-    def generate(self, amount, width=32, height=32, pattern=SinePattern(200, 4000)):
-        for num in range(amount+1):
-            enemy = Enemy(self, pattern=pattern, height=height, width=width, item_num=num, amount=amount)
-            self.add(enemy)
-
-
-class Enemy(Sprite):
-    def __init__(self, *groups: Enemies, color=pygame.Color(180, 170, 140), width, height, pattern, item_num, amount):
-        super().__init__(*groups)
-        self.amount = amount
-        self.item_num = item_num
-        self.pattern = pattern
-        self.color = color
-        self.image = pygame.Surface([width, height])
-        self.image.fill(self.color)
-        self.rect = self.image.get_rect()
-
-    def update(self, *args: Any, **kwargs: Any) -> None:
-        self.rect.center = self.pattern.calculate_position(self.item_num, self.amount)
-
-
-        # y_pos_movement = self.get_sine_for_ms(self.movement_height, self.loop_duration, self.offset)
-
-        # x_pos_mouse = pygame.mouse.get_pos()[0]
-        # x_distance_mouse_center = abs(self.rect.center[0] - x_pos_mouse)
-        # x_normalized_modulation_distance = (window_width - x_distance_mouse_center) / window_width
-        # y_new = self.baseline + (y_pos_movement * x_normalized_modulation_distance *1.5)
-        # self.rect.y = y_new
-
-    # enemy.rect.center = self.pattern.calculate_position(num, amount)
-
-
-def point_dist(point_1, point_2):
-    x1, y1 = point_1[0], point_1[1]
-    x2, y2 = point_2[0], point_2[1]
-    return math.hypot(x2 - x1, y2 - y1)
-
-
-crashed = False
-
-enemies = Enemies()
-enemies.generate(50, 8)
-
-while not crashed:
+while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            crashed = True
+            running = False
 
-    enemies.update()
+    markers.update()
 
     window.blit(background, (0, 0))
-    enemies.draw(window)
+    markers.draw(window)
     pygame.display.flip()
     pygame.event.pump()
     # pygame.display.update()
