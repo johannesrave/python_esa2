@@ -19,9 +19,16 @@ pygame.display.flip()
 running = True
 
 markers = Markers(
-    pattern=SinePattern(200, 4000, time=pygame.time, dimensions=window_dimensions),
-    modulation=MouseBased(30, 'x'))
-for i in range(50):
+    pattern=SinePattern(
+        amplitude=120,
+        duration=4000,
+        time=pygame.time,
+        dimensions=window_dimensions,
+        modulation=MouseBased(
+            window_dimensions[0],
+            'x',
+            pygame.mouse)))
+for i in range(32):
     Marker(markers)
 
 while running:

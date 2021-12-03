@@ -2,23 +2,19 @@ from typing import Any, Sequence, Union
 
 import pygame
 from pygame.sprite import Group, Sprite
-from src.geometry import Pattern, Modulation
+from src.geometry import Pattern
 
 
 class Markers(Group):
     def __init__(self,
                  *sprites: Union[Sprite, Sequence[Sprite]],
-                 modulation: Modulation,
                  pattern: Pattern):
         super().__init__(*sprites)
-        self.modulation = modulation
         self.pattern = pattern
 
     def update(self):
         for index, marker in enumerate(self):
-            raw_position = self.pattern.place(index, len(self))
-            modulated_position = self.modulation.modulate(raw_position)
-            marker.rect.center = modulated_position
+            marker.rect.center = self.pattern.place(index, len(self))
 
 
 class Marker(Sprite):
